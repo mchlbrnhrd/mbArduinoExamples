@@ -24,3 +24,6 @@ Set bautrate to 9600. No additional hardware is required.
 Example demo first loads settings from EEPROM and print out one example value via Serial.
 Then an value is changed and saved into EEPROM.
 After reboot of Arudino the new value should be printed out.
+
+### Test environment
+Tested with Arudino Uno.
