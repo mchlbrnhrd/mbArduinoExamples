@@ -1,5 +1,5 @@
 # mbArduinoExamples
-Example scetches for arduino microcontroller from real projects.
+Example scetches for arduino microcontroller from real projects. Therefore practical examples for Arduino Uno, Arduino Nano, Arduino Nano Every, Arduino Yún and also other microconrollers like ESP8266 (NodeMCU) or ESP32.
 
 ## EEPROM
 scetch: **eeprom/eeprom.ino**
@@ -26,4 +26,4 @@ Then an value is changed and saved into EEPROM.
 After reboot of Arudino the new value should be printed out.
 
 ### Test environment
-Tested with Arudino Uno.
+Tested with Arduino Uno.
