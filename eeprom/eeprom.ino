@@ -63,41 +63,43 @@ struct ExampleSettingStruct_st {
 };
 
 
-ExampleSettingStruct_st myExampleSetting_st;
-
 //============================
 // setup
 //============================
 void setup() 
 {
   Serial.begin(9600);
-  Serial.println(F("Setup is called."));
+  Serial.println(F("\nSetup is called."));
 
-  bool error=false;
-  error=loadSettings();
-  if (error) {
-    Serial.println(F("Loading settings from EEPROM failed."));
+  bool l_Error_bl=false;
+  ExampleSettingStruct_st l_MyExampleSetting_st;
+
+  
+  l_Error_bl=loadSettings_bl(l_MyExampleSetting_st);
+  if (l_Error_bl) {
+    Serial.println(F("Error: Loading settings from EEPROM failed."));
   } else {
     Serial.println(F("Loading settings from EEPROM succeed."));
   }
 
   // print out an example value:
   Serial.print(F("previous ExampleValueA: "));
-  Serial.println(myExampleSetting_st.ExampleValueA_ui16);
+  Serial.println(l_MyExampleSetting_st.ExampleValueA_ui16);
   Serial.print(F("CheckSum: "));
-  Serial.println((uint16_t)myExampleSetting_st.CheckSum_ui8);
+  Serial.println((uint16_t)l_MyExampleSetting_st.CheckSum_ui8);
   
 
-  // change value here:
-  myExampleSetting_st.ExampleValueA_ui16 = 123;
+  // change value here and update check sum
+  l_MyExampleSetting_st.ExampleValueA_ui16 = 123;
+  l_MyExampleSetting_st.CheckSum_ui8 = calculateSettingCheckSum_ui8(l_MyExampleSetting_st);
 
   Serial.print(F("new ExampleValueA: "));
-  Serial.println(myExampleSetting_st.ExampleValueA_ui16);
+  Serial.println(l_MyExampleSetting_st.ExampleValueA_ui16);
   Serial.print(F("CheckSum: "));
-  Serial.println((uint16_t)myExampleSetting_st.CheckSum_ui8);
+  Serial.println((uint16_t)l_MyExampleSetting_st.CheckSum_ui8);
 
   // save new value
-  saveSettings();
+  saveSettings_vd(l_MyExampleSetting_st);
 
   Serial.println(F(""));
   Serial.println(F("Reboot Arduino to check if new value was stored in EEPROM"));
@@ -111,17 +113,16 @@ void setup()
 //============================
 void loop()
 {
-  
-
+  // do nothing in this example
 }
 
 
 //============================
 // saveSettings
 //============================
-void saveSettings() {
+void saveSettings_vd(const ExampleSettingStruct_st& f_MyExampleSetting_st) {
   char l_Buffer_pc[sizeof(ExampleSettingStruct_st)];
-  memcpy(&l_Buffer_pc[0], &myExampleSetting_st, sizeof(ExampleSettingStruct_st));
+  memcpy(&l_Buffer_pc[0], &f_MyExampleSetting_st, sizeof(ExampleSettingStruct_st));
   for (uint16_t l_Ctr_ui16=0; l_Ctr_ui16 < sizeof(ExampleSettingStruct_st); ++l_Ctr_ui16) {
     EEPROM.update(l_Ctr_ui16, l_Buffer_pc[l_Ctr_ui16]);
   }
@@ -131,42 +132,44 @@ void saveSettings() {
 //============================
 // loadSettings
 //============================
-bool loadSettings()
+bool loadSettings_bl(ExampleSettingStruct_st& f_MyExampleSetting_st)
 {
-  bool ErrorInSettingStruct_bl=false;
-  
+  bool l_ErrorInSettingStruct_bl=false;
   char l_Buffer_pc[sizeof(ExampleSettingStruct_st)];
+  
   // read values into buffer
   for (uint16_t l_Ctr_ui16=0; l_Ctr_ui16 < sizeof(ExampleSettingStruct_st); ++l_Ctr_ui16) {
     l_Buffer_pc[l_Ctr_ui16] = EEPROM.read(l_Ctr_ui16);
   }
 
   // copy/convert buffer into myExampleSetting_st
-  memcpy(&myExampleSetting_st, &l_Buffer_pc[0], sizeof(ExampleSettingStruct_st));
+  memcpy(&f_MyExampleSetting_st, &l_Buffer_pc[0], sizeof(ExampleSettingStruct_st));
 
   // check if settings are valid
-  const uint8_t CheckSum_ui8 = calculateSettingCheckSum_ui8(myExampleSetting_st);
-  if (myExampleSetting_st.CheckSum_ui8 != CheckSum_ui8) {
+  const uint8_t l_CheckSum_ui8 = calculateSettingCheckSum_ui8(f_MyExampleSetting_st);
+  if (f_MyExampleSetting_st.CheckSum_ui8 != l_CheckSum_ui8) {
     // reading settings from EEPROM went wrong
     // use pre defined settings and save them in EEPROM
     
     // error
-    ErrorInSettingStruct_bl=true;
+    l_ErrorInSettingStruct_bl=true;
 
-    
     // set pre defined data (initial data)
-    myExampleSetting_st.ExampleValueA_ui16 = 100;
-    myExampleSetting_st.ExampleValueB_ui16 = 15000;
-    myExampleSetting_st.ExampleValueC_ui8 = 4;
-    myExampleSetting_st.ExampleValueD_ui8 = 6;
-    for (int k=0; k < 8; ++k) {
-      myExampleSetting_st.ValueArray_pui8[k] = k;
+    f_MyExampleSetting_st.ExampleValueA_ui16 = 100;
+    f_MyExampleSetting_st.ExampleValueB_ui16 = 15000;
+    f_MyExampleSetting_st.ExampleValueC_ui8 = 4;
+    f_MyExampleSetting_st.ExampleValueD_ui8 = 6;
+    for (uint8_t k=0; k < 8; ++k) {
+      f_MyExampleSetting_st.ValueArray_pui8[k] = k;
     }
-    
-    saveSettings();
+    // update checksum
+    f_MyExampleSetting_st.CheckSum_ui8 = calculateSettingCheckSum_ui8(f_MyExampleSetting_st);
+
+    // save default value into EEPROM
+    saveSettings_vd(f_MyExampleSetting_st);
   }
 
-  return ErrorInSettingStruct_bl;
+  return l_ErrorInSettingStruct_bl;
 }
 
 
@@ -175,9 +178,12 @@ bool loadSettings()
 //============================
 uint8_t calculateSettingCheckSum_ui8(const ExampleSettingStruct_st& f_Setting_st)
 {
-  uint8_t l_CheckSum_ui8=0;
+  uint8_t l_CheckSum_ui8=1; // init value not 0: otherwise empty EEPROM will be detected as valid
   char l_Buffer_pc[sizeof(ExampleSettingStruct_st)];
   memcpy(&l_Buffer_pc[0], &f_Setting_st, sizeof(ExampleSettingStruct_st));
+
+  // loop over buffer but do not consider already existing checksum value into calculation
+  // therefore: sizeof() - 1, because last entry is check sum
   for (uint16_t k=0; k < sizeof(ExampleSettingStruct_st)-1;++k) {
     l_CheckSum_ui8+=l_Buffer_pc[k];
   }
