@@ -73,7 +73,6 @@ void setup()
 
   bool l_Error_bl=false;
   ExampleSettingStruct_st l_MyExampleSetting_st;
-
   
   l_Error_bl=loadSettings_bl(l_MyExampleSetting_st);
   if (l_Error_bl) {
@@ -88,7 +87,6 @@ void setup()
   Serial.print(F("CheckSum: "));
   Serial.println((uint16_t)l_MyExampleSetting_st.CheckSum_ui8);
   
-
   // change value here and update check sum
   l_MyExampleSetting_st.ExampleValueA_ui16 = 123;
   l_MyExampleSetting_st.CheckSum_ui8 = calculateSettingCheckSum_ui8(l_MyExampleSetting_st);
@@ -101,10 +99,7 @@ void setup()
   // save new value
   saveSettings_vd(l_MyExampleSetting_st);
 
-  Serial.println(F(""));
-  Serial.println(F("Reboot Arduino to check if new value was stored in EEPROM"));
-  Serial.println(F(""));
-  Serial.println(F(""));
+  Serial.println(F("\nReboot Arduino to check if new value was stored in EEPROM\n\n"));
 }
 
 
