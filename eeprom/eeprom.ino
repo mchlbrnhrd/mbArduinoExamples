@@ -68,7 +68,9 @@ struct ExampleSettingStruct_st {
 //============================
 void setup() 
 {
+  delay(3000);
   Serial.begin(9600);
+  delay(3000);
   Serial.println(F("\nSetup is called."));
 
   bool l_Error_bl=false;
@@ -116,10 +118,9 @@ void loop()
 // saveSettings
 //============================
 void saveSettings_vd(const ExampleSettingStruct_st& f_MyExampleSetting_st) {
-  char l_Buffer_pc[sizeof(ExampleSettingStruct_st)];
-  memcpy(&l_Buffer_pc[0], &f_MyExampleSetting_st, sizeof(ExampleSettingStruct_st));
+  const uint8_t* const l_StructPointer_pui8=  (const uint8_t*)&f_MyExampleSetting_st; // cast to 8 bit pointer
   for (uint16_t l_Ctr_ui16=0; l_Ctr_ui16 < sizeof(ExampleSettingStruct_st); ++l_Ctr_ui16) {
-    EEPROM.update(l_Ctr_ui16, l_Buffer_pc[l_Ctr_ui16]);
+    EEPROM.update(l_Ctr_ui16, l_StructPointer_pui8[l_Ctr_ui16]); // save byte by byte
   }
 }
 
@@ -130,15 +131,12 @@ void saveSettings_vd(const ExampleSettingStruct_st& f_MyExampleSetting_st) {
 bool loadSettings_bl(ExampleSettingStruct_st& f_MyExampleSetting_st)
 {
   bool l_ErrorInSettingStruct_bl=false;
-  char l_Buffer_pc[sizeof(ExampleSettingStruct_st)];
+  uint8_t* l_StructPointer_pui8 = (uint8_t*)&f_MyExampleSetting_st; // get address of location
   
   // read values into buffer
   for (uint16_t l_Ctr_ui16=0; l_Ctr_ui16 < sizeof(ExampleSettingStruct_st); ++l_Ctr_ui16) {
-    l_Buffer_pc[l_Ctr_ui16] = EEPROM.read(l_Ctr_ui16);
+    l_StructPointer_pui8[l_Ctr_ui16] = EEPROM.read(l_Ctr_ui16);
   }
-
-  // copy/convert buffer into myExampleSetting_st
-  memcpy(&f_MyExampleSetting_st, &l_Buffer_pc[0], sizeof(ExampleSettingStruct_st));
 
   // check if settings are valid
   const uint8_t l_CheckSum_ui8 = calculateSettingCheckSum_ui8(f_MyExampleSetting_st);
@@ -174,13 +172,12 @@ bool loadSettings_bl(ExampleSettingStruct_st& f_MyExampleSetting_st)
 uint8_t calculateSettingCheckSum_ui8(const ExampleSettingStruct_st& f_Setting_st)
 {
   uint8_t l_CheckSum_ui8=1; // init value not 0: otherwise empty EEPROM will be detected as valid
-  char l_Buffer_pc[sizeof(ExampleSettingStruct_st)];
-  memcpy(&l_Buffer_pc[0], &f_Setting_st, sizeof(ExampleSettingStruct_st));
+  const uint8_t* const l_StructPointer_pui8 = (const uint8_t*)&f_Setting_st; // get 8 bit pointer of struct
 
   // loop over buffer but do not consider already existing checksum value into calculation
   // therefore: sizeof() - 1, because last entry is check sum
   for (uint16_t k=0; k < sizeof(ExampleSettingStruct_st)-1;++k) {
-    l_CheckSum_ui8+=l_Buffer_pc[k];
+    l_CheckSum_ui8+=l_StructPointer_pui8[k];
   }
   return  l_CheckSum_ui8;
 }
