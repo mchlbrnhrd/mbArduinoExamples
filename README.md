@@ -7,7 +7,7 @@ scetch: **eeprom/eeprom.ino**
 In this example an user defined struct is stored in EEPROM (Electrically Erasable Programmable Read-only Memory)  and loaded from EEPROM.
 For safety reason also a check sum is calculated. In case that loading values from
 EEPROM went wrong then pre defined values are used. This will happens
-when code will run for the very first time - or when an error in EEPROM occured.
+when code will run for the very first time - or when an error in EEPROM occurred.
 
 ### Functions
 The examples shows:
@@ -15,6 +15,9 @@ The examples shows:
 * function to store struct into EEPROM
 * function to load struct from EEPROM
 * function to calculate check sum
+
+### Brief explanation and demonstration
+[Video: Demo and explanation](https://youtu.be/h1G3k0WJXHw)
 
 ### Run Demo
 Load scetch to your Arduino and open Serial Monitor from Arduino IDE to see what happens.
